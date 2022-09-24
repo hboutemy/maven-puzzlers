@@ -1,0 +1,70 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+
+  <groupId>maven.puzzlers</groupId>
+  <artifactId>many-deps</artifactId>
+  <version>0-SNAPSHOT</version>
+
+  <name>Many Deps</name>
+  <description>
+    multiple dependencies with same GA:
+    - Maven warns when building: https://issues.apache.org/jira/browse/MNG-4005
+    - last declaration wins
+    TODO: in future Maven release, ERROR instead of WARN https://issues.apache.org/jira/browse/MNG-4622
+  </description>
+  <!--
+$ mvn dependency:list
+[INFO] Scanning for projects...
+[WARNING] 
+[WARNING] Some problems were encountered while building the effective model for maven.puzzlers:many-deps:jar:0-SNAPSHOT
+[WARNING] 'dependencies.dependency.(groupId:artifactId:type:classifier)' must be unique: org.apache.maven:maven-artifact:jar -> version 3.8.6 vs 3.6.3 @ line 34, column 17
+[WARNING] 
+[WARNING] It is highly recommended to fix these problems because they threaten the stability of your build.
+[WARNING] 
+[WARNING] For this reason, future Maven versions might no longer support building such malformed projects.
+[WARNING] 
+  -->
+
+  <dependencies>
+    <dependency>
+      <groupId>org.apache.maven</groupId>
+      <artifactId>maven-artifact</artifactId>
+      <version>3.8.6</version>
+    </dependency>
+    <dependency>
+      <groupId>org.apache.maven</groupId>
+      <artifactId>maven-artifact</artifactId>
+      <version>3.6.3</version>
+    </dependency>
+  </dependencies>
+
+  <build>
+    <plugins>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-enforcer-plugin</artifactId>
+        <version>3.1.0</version>
+        <executions>
+          <execution>
+            <goals>
+              <goal>enforce</goal>
+            </goals>
+            <configuration>
+              <rules>
+                <banDuplicatePomDependencyVersions/><!-- https://issues.apache.org/jira/browse/MENFORCER-152 -->
+              </rules>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
+    </plugins>
+  </build>
+  <!--
+ $ mvn validate
+[INFO] - - - maven-enforcer-plugin:3.1.0:enforce (default) @ many-deps - - -
+[ERROR] Rule 0: org.apache.maven.plugins.enforcer.BanDuplicatePomDependencyVersions failed with message:
+Found 1 duplicate dependency declaration in this project:
+ - dependencies.dependency[org.apache.maven:maven-artifact:jar] ( 2 times )
+  -->
+</project>
